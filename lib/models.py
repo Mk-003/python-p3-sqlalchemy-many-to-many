@@ -10,6 +10,30 @@ metadata = MetaData(naming_convention=convention)
 
 Base = declarative_base(metadata=metadata)
 
+
+game_user = Table(
+    'game_users',
+    Base.metadata,
+    Column('game_id', ForeignKey('games.id'), primary_key=True),
+    Column('user_id', ForeignKey('users.id'), primary_key=True),
+    extend_existing=True,
+)
+
+
+class User(Base):
+    __tablename__='users'
+
+    id = Column(Integer(), primary_key=True)
+    name=Column(String())
+    created_at=Column(DateTime(), server_default=func.now())
+    update_at=Column(DateTime(), onupdate=func.now())
+    
+    reviews=relationship('Review', backref=backref('user'))
+
+    def __repr__(self):
+        return f'user(id={self.id},' +\
+            f'name={self.name})'
+
 class Game(Base):
     __tablename__ = 'games'
 
@@ -20,6 +44,8 @@ class Game(Base):
     price = Column(Integer())
 
     reviews = relationship('Review', backref=backref('game'))
+
+    users=relationship('Users', secondary=game_user,back_populates='games')
 
     def __repr__(self):
         return f'Game(id={self.id}, ' + \
@@ -35,7 +61,28 @@ class Review(Base):
     
     game_id = Column(Integer(), ForeignKey('games.id'))
 
+    user_id = Column(Integer(), ForeignKey('users.id'))
+
     def __repr__(self):
         return f'Review(id={self.id}, ' + \
             f'score={self.score}, ' + \
             f'game_id={self.game_id})'
+
+
+#many to many btn game & user
+# class GameUser(Base):
+#     __tablename__= "game_users"
+#     id=Column(Integer(), primary_key=True)
+#     game_id=Column(ForeignKey('game.id'))
+#     user_id=Column(ForeignKey('user.id'))
+
+# #connect both game and user models
+# #back_populates used in place of backref due to many to many 
+#     game=relationship('Game', back_populates='game_users')
+#     user=relationship('User', back_populates='game_users')
+
+    def __repr__ (self):
+        return f'GameUser(game_id={self.game_id}' +\
+            f'user_id={self.user_id})'    
+    
+
